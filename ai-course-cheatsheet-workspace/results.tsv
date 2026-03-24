@@ -1,0 +1,4 @@
+iteration	commit_hash	score	delta	status	description
+1	ed539fe	0.92	0.00	START	baseline - skill instructions cover 23/25 assertions confidently; 2 soft (line count enforcement, explicit page-break template)
+2	7601a82	0.96	+0.04	KEEP	added mandatory line counts (MUST not aim) and explicit HTML skeleton template with page-break divs
+3	a506443	1.00	+0.04	KEEP	strengthened SVG requirements - explicit rect/path/circle/text mandates with multiple elements required
