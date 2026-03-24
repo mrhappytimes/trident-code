@@ -27,9 +27,11 @@ Output a single, self-contained HTML file. All CSS must be inline (inside `<styl
 
 ### Page 3: Visual Flow Diagram (SVG)
 - Create an inline SVG diagram that connects all major concepts visually
-- Use boxes, arrows, paths, and labels to show relationships
-- The SVG must contain at least one `<path>`, `<rect>`, or `<circle>` element
-- Make the diagram comprehensive enough to serve as a visual summary of the entire course
+- The SVG MUST use `<rect>` elements for concept boxes, `<path>` or `<line>` elements for arrows/connections, and `<text>` elements for labels
+- Include `<circle>` elements for key decision points or highlights
+- The SVG must contain multiple `<rect>`, `<path>`, `<circle>`, and `<text>` elements — not just one or two
+- Make the diagram comprehensive: every major concept from the course should appear as a labeled node
+- Use `viewBox` attribute on the SVG for responsive sizing
 
 ## Content Rules
 
