@@ -1,0 +1,73 @@
+{
+  "skill_name": "smart-start-light",
+  "generated_at": "2026-03-24T00:00:00Z",
+  "source_rules": [
+    "Transforms raw ideas into world-class Claude prompts via 6-phase pipeline (4D + RTCO + Foundation layer)",
+    "Output is a structured, reusable prompt template",
+    "Must include role definition, task description, context, and output format",
+    "Must include specific constraints and success criteria",
+    "Significantly more structured and refined than the raw input"
+  ],
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Turn this into a prompt: 'I need help writing product marketing copy that explains a new AI tool to non-technical buyers.'",
+      "expected_output": "A structured Claude prompt with defined role, task, context, constraints, and output format",
+      "assertions": [
+        "Output contains a clear role definition (words like 'You are', 'Act as', 'Take on the role of', or explicit persona)",
+        "Output contains a distinct task section describing what Claude should do",
+        "Output specifies output format or structure requirements (bullet points, sections, length, tone, etc.)",
+        "Output includes at least 2 constraints or guardrails (e.g., 'Avoid jargon', 'Keep under X words', 'Do not mention competitors')",
+        "Output is formatted as a reusable prompt template (not conversational, ready to copy-paste into Claude)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Raw idea: 'Create a customer support response generator that helps my team respond to angry customers faster while staying professional.'",
+      "expected_output": "A production-ready prompt template with structured sections",
+      "assertions": [
+        "Output defines the role/persona for Claude (e.g., 'customer service expert', 'professional communicator')",
+        "Output specifies the exact task (generate responses, review, template, etc.)",
+        "Output includes success criteria or quality indicators (e.g., 'tone should be empathetic', 'must acknowledge the problem', 'offer solution')",
+        "Output provides context or examples showing what good output looks like",
+        "Output is significantly more detailed and structured than the 1-2 sentence input idea"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want a prompt that helps me analyze competitor products and identify gaps we could exploit.",
+      "expected_output": "Structured prompt with role, analysis framework, constraints, and deliverables",
+      "assertions": [
+        "Output contains role definition (analyst, researcher, strategist, etc.)",
+        "Output specifies what Claude should analyze and how (dimensions, framework, methodology)",
+        "Output includes output format requirements (table, summary, prioritized list, etc.)",
+        "Output contains constraints about objectivity, scope, or data sources (e.g., 'focus on public information', 'identify 3-5 gaps max')",
+        "Output reads as a professional prompt template, not a conversational response"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Help me build a prompt that generates meeting notes from transcripts automatically.",
+      "expected_output": "A structured prompt for automated meeting note generation",
+      "assertions": [
+        "Output explicitly defines role (meeting facilitator, analyst, note-taker, etc.)",
+        "Output specifies the input format (transcript) and expected output structure (sections, summary, action items, etc.)",
+        "Output includes formatting or tone requirements (professional, concise, highlight decisions, etc.)",
+        "Output contains at least 1 constraint about what to include or exclude from notes",
+        "Output is formatted as a standalone prompt template, not advice or explanation"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I need to turn this vague thought into a usable prompt: 'Something that helps with brainstorming new product features based on user feedback.'",
+      "expected_output": "A comprehensive, structured ideation prompt with clear constraints and success metrics",
+      "assertions": [
+        "Output assigns a clear role to Claude (ideation facilitator, product strategist, innovation consultant, etc.)",
+        "Output specifies how Claude should process user feedback (synthesize, categorize, prioritize, etc.)",
+        "Output includes output structure requirements (numbered list, impact matrix, categorized by theme, etc.)",
+        "Output defines success criteria (e.g., 'features should be actionable', 'avoid unrealistic suggestions', 'prioritize by user impact')",
+        "Output demonstrates substantial elaboration on the vague input, with clear sections and professional formatting"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "skill_name": "ai-course-cheatsheet",
+  "generated_at": "2026-03-24T00:00:00Z",
+  "source_rules": [
+    "Output is always a self-contained HTML file",
+    "Page 1: Core framework and key concepts",
+    "Page 2: Practical application, techniques, and competency summary",
+    "Page 3: SVG flow diagram connecting all concepts visually",
+    "3-page structure is mandatory"
+  ],
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a cheat sheet from this course content: 'Prompt Engineering Fundamentals - covers chain-of-thought reasoning, few-shot prompting, system prompts, temperature settings, and output formatting. Key framework: CRISP (Context, Role, Instructions, Style, Parameters).'",
+      "expected_output": "A self-contained HTML file with 3 pages covering CRISP framework, techniques, and a flow diagram",
+      "assertions": [
+        "Output contains valid HTML declaration (<!DOCTYPE html> or <html>)",
+        "Output contains at least 3 distinct page/section divisions (pages, sections, or divs marked for print page breaks)",
+        "Output includes the text 'CRISP' somewhere in the content",
+        "Output contains at least one SVG element (inline <svg> tag)",
+        "Output contains no external CSS or JS imports from local files (no <link href=..> or <script src=..> to local paths)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Make a cheat sheet for: 'RAG Architecture Course - Topics: vector databases, embedding models, chunking strategies, retrieval methods, reranking, context window management. Duration: 4 hours.'",
+      "expected_output": "HTML cheat sheet covering RAG architecture concepts across 3 pages",
+      "assertions": [
+        "Output contains the word 'vector' or 'embedding' at least once",
+        "Output contains the word 'chunking' or 'chunk' at least once",
+        "Output contains at least 3 heading tags (h1, h2, or h3) with meaningful content",
+        "Output contains an SVG element with at least one path, rect, or circle element",
+        "Output HTML is over 500 lines (comprehensive 3-page structure, not a stub)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Generate a reference sheet from: 'AI Safety & Alignment - Module 1: RLHF basics. Module 2: Constitutional AI. Module 3: Red teaming. Module 4: Evaluation frameworks. Key people: Anthropic, OpenAI, DeepMind.'",
+      "expected_output": "3-page HTML cheat sheet with AI safety concepts, techniques, and visual diagram",
+      "assertions": [
+        "Output mentions 'RLHF' or 'reinforcement learning' at least once",
+        "Output mentions at least 2 of these: 'Constitutional AI', 'Red teaming', 'Evaluation', 'Framework'",
+        "Second page or middle section contains practical application language (includes words like 'technique', 'method', 'apply', 'practice', 'implement', or 'use')",
+        "Output contains inline CSS styles (style tags or style attributes present, no external stylesheets from local paths)",
+        "Output contains at least one SVG visual element or diagram"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Cheat sheet for a very short course: 'Intro to LLMs - 30 minutes. Covers: what are LLMs, tokenization, inference.'",
+      "expected_output": "Even with minimal input, produces a complete 3-page HTML structure",
+      "assertions": [
+        "Output is valid HTML (contains opening <html> and closing </html> tags)",
+        "Output contains at least 3 distinct page sections or divisions despite minimal input",
+        "Output mentions 'tokenization', 'token', 'inference', or 'LLM' at least once",
+        "Output HTML file is over 200 lines (skill elaborates and structures the minimal input)",
+        "Output contains an SVG element or visual diagram on the third page"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Create a cheat sheet from: 'Advanced Claude Code Workflows - Skills architecture, subagent patterns, eval frameworks, memory systems, hook patterns. Taught by Anthropic engineering team. Includes hands-on labs.'",
+      "expected_output": "Comprehensive 3-page HTML cheat sheet on Claude Code workflows",
+      "assertions": [
+        "Output mentions 'skill', 'skills', 'architecture', or 'pattern' in the content",
+        "Output mentions 'subagent', 'agent', 'eval', or 'framework' in the content",
+        "Page 1 section contains framework or concept overview with structured definitions",
+        "Page 3 section contains an SVG diagram connecting multiple concepts visually",
+        "Output does NOT contain placeholder text (no 'TODO', 'INSERT', 'TBD', 'PLACEHOLDER', or '[...]' markers)"
+      ]
+    }
+  ]
+}

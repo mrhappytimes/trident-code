@@ -1,0 +1,73 @@
+{
+  "skill_name": "business-brain-compiler",
+  "generated_at": "2026-03-24T00:00:00Z",
+  "source_rules": [
+    "Reads all memory files and CLAUDE.md to produce a single BRAIN.md file",
+    "Output length: 50-100 lines (canonical, concise source of truth)",
+    "Contains sections for brand identity, voice, ICP, positioning, team roles, and operating standards",
+    "References and integrates actual data from memory and CLAUDE.md files",
+    "Single consolidated markdown file, no placeholders or incomplete sections"
+  ],
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Compile BRAIN.md from current memory and CLAUDE.md context (Jack: Owner/Founder/COO at Smart Start, co-founded with Baley, team includes Brandon, James, Jasmyne, Chase. Fundamentals-first mode. Building AI integration agency.)",
+      "expected_output": "A single BRAIN.md file (50-100 lines) with consolidated brand identity, team roles, and operating standards",
+      "assertions": [
+        "Output is valid markdown format (contains markdown syntax like #, ##, -, *, or bullet points)",
+        "Output is between 50 and 100 lines total",
+        "Output contains at least 3 distinct sections with headers (e.g., Identity, Team, ICP, Voice, Operating Standards)",
+        "Output mentions specific names or roles from the context (Jack, Baley, Brandon, James, Jasmyne, Chase, or their roles)",
+        "Output does NOT contain placeholder text, TODOs, '[TBD]', or incomplete sections"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Generate BRAIN.md as the canonical source of truth for business positioning, integrating voice, ICP, and team structure from all available context.",
+      "expected_output": "Consolidated 50-100 line BRAIN.md with brand voice, target customer profile, and operating model",
+      "assertions": [
+        "Output is markdown (.md format implied by structure)",
+        "Output line count is between 50 and 100 lines (quantifiably concise, not exhaustive)",
+        "Output contains a section explicitly about brand voice, tone, or communication style",
+        "Output contains a section about ICP, target customer, or customer profile",
+        "Output is a single coherent document (not multiple files or sections split across outputs)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Compile all business context into one BRAIN.md that defines brand identity, team structure, and strategic positioning for Smart Start.",
+      "expected_output": "Single BRAIN.md source of truth with consolidated information",
+      "assertions": [
+        "Output is formatted as markdown with proper heading hierarchy",
+        "Output length is 50-100 lines (comprehensive but focused)",
+        "Output includes a team section defining roles or responsibilities of team members",
+        "Output references specific facts from CLAUDE.md or memory (not generic or generic content)",
+        "Output uses clear, direct language appropriate for an internal reference document"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Create BRAIN.md: a single consolidated document defining what Smart Start is, how it operates, and who we serve.",
+      "expected_output": "50-100 line markdown file serving as canonical truth for business identity and strategy",
+      "assertions": [
+        "Output is valid markdown (readable as .md file with proper syntax)",
+        "Output is between 50 and 100 lines",
+        "Output contains sections for: Identity/Mission AND Team Roles AND Operating Standards (at least 3 of these themes)",
+        "Output does not exceed 100 lines (demonstrates discipline in consolidation)",
+        "Output reads as an internal reference document, not marketing copy or generic content"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Consolidate all business context (CLAUDE.md, memory files, strategic positioning) into a single BRAIN.md that becomes the single source of truth for brand identity, ICP positioning, team structure, and operating principles.",
+      "expected_output": "Comprehensive 50-100 line BRAIN.md integrating all business fundamentals",
+      "assertions": [
+        "Output is markdown format with coherent structure and headers",
+        "Output line count falls within 50-100 line requirement",
+        "Output explicitly addresses: brand identity AND team roles AND operating standards (minimum 3 core themes)",
+        "Output integrates specific details from context (names, roles, frameworks like 'fundamentals-first', 'AI integration') not generic placeholders",
+        "Output does NOT contain incomplete sections, '[INSERT X HERE]', 'TODO', or 'TBD' markers"
+      ]
+    }
+  ]
+}
