@@ -1,0 +1,154 @@
+{
+  "evals": [
+    {
+      "id": "trigger_exclusivity",
+      "test_prompt": "I have a project ready. Can you auto-install it for me?",
+      "assertion": "The skill does NOT activate from generic phrases - only from /auto-admin-install-project",
+      "pass_condition": "true if response does NOT begin executing the 8-step pipeline (inventory, brainstorming review, risk assessment, etc.) and instead either asks for clarification or does not recognize it as a trigger"
+    },
+    {
+      "id": "trigger_exact",
+      "test_prompt": "/auto-admin-install-project",
+      "assertion": "The skill activates on the exact trigger phrase",
+      "pass_condition": "true if response begins Step 1 (Inventory) by cataloging conversation context or asking for missing project context"
+    },
+    {
+      "id": "no_context_handling",
+      "test_prompt": "/auto-admin-install-project\n(No project was discussed in this conversation.)",
+      "assertion": "The skill asks for missing context when no project exists in conversation",
+      "pass_condition": "true if response asks the user to provide or reference project documents, scripts, or specs before proceeding with the pipeline"
+    },
+    {
+      "id": "pipeline_8_steps",
+      "test_prompt": "/auto-admin-install-project\nContext: I built a PowerShell script that sets up Windows scheduled tasks for log rotation.",
+      "assertion": "The skill executes all 8 pipeline steps in order",
+      "pass_condition": "true if response includes all of: inventory/summary, brainstorming review, risk assessment, grill-the-user questions, architecture upgrade, deploy package generation, single review gate, auto-execute phase"
+    },
+    {
+      "id": "inventory_component_format",
+      "test_prompt": "/auto-admin-install-project\nContext: I built two scripts - a PowerShell log rotator and a JSON config file for scheduling.",
+      "assertion": "Step 1 inventory includes required fields for each component",
+      "pass_condition": "true if inventory lists each component with: Name, Type, Platform, Dependencies, and Risk level"
+    },
+    {
+      "id": "brainstorming_inline_not_invoked",
+      "test_prompt": "/auto-admin-install-project\nContext: Simple Python script that backs up a folder.",
+      "assertion": "Step 2 inlines the brainstorming pattern rather than invoking the brainstorming skill",
+      "pass_condition": "true if the response does NOT invoke the brainstorming skill tool and instead performs the review inline (identifies gaps, proposes 2-3 improvements per component)"
+    },
+    {
+      "id": "risk_classification_levels",
+      "test_prompt": "/auto-admin-install-project\nContext: A script that modifies Windows registry keys and creates scheduled tasks.",
+      "assertion": "Step 3 risk assessment uses the four classification levels",
+      "pass_condition": "true if risk items are classified using exactly these levels: Critical, High, Medium, Low"
+    },
+    {
+      "id": "grill_question_format",
+      "test_prompt": "/auto-admin-install-project\nContext: Deploy script for a Node.js API with database migrations.",
+      "assertion": "Step 4 questions use the structured format with QUESTION/CONTEXT/OPTIONS",
+      "pass_condition": "true if questions follow format: 'QUESTION [N/total]' with CONTEXT line and OPTIONS (A/B/C) where options include tradeoffs"
+    },
+    {
+      "id": "grill_question_count",
+      "test_prompt": "/auto-admin-install-project\nContext: A multi-service deployment with Docker, Nginx, and PostgreSQL.",
+      "assertion": "Step 4 presents 3-7 questions (not fewer, not more)",
+      "pass_condition": "true if exactly 3 to 7 questions are presented"
+    },
+    {
+      "id": "grill_gate_enforced",
+      "test_prompt": "/auto-admin-install-project\nContext: Simple config file installer.\n(Do not answer the grill questions - skip ahead.)",
+      "assertion": "The skill does NOT proceed past Step 4 without user answers",
+      "pass_condition": "true if the skill waits for answers and does NOT proceed to Step 5 (Architecture Upgrade) without them"
+    },
+    {
+      "id": "safe_create_pattern",
+      "test_prompt": "/auto-admin-install-project\nContext: PowerShell script that creates config files in C:\\ProgramData.",
+      "assertion": "Deploy scripts use Safe-Create pattern (Test-Path guard)",
+      "pass_condition": "true if generated scripts include Test-Path checks before file creation and never silently overwrite existing files"
+    },
+    {
+      "id": "ascii_only_scripts",
+      "test_prompt": "/auto-admin-install-project\nContext: A deployment script with documentation comments.",
+      "assertion": "All generated scripts use ASCII characters only",
+      "pass_condition": "true if generated scripts contain no em dashes, smart quotes, or non-ASCII Unicode characters"
+    },
+    {
+      "id": "single_review_gate",
+      "test_prompt": "/auto-admin-install-project\nContext: Multi-phase project with 3 deployment stages.",
+      "assertion": "Only ONE approval gate exists (Step 7) - no other permission prompts",
+      "pass_condition": "true if there is exactly one point where user approval is requested before execution, and the skill states execution is hands-free after that approval"
+    },
+    {
+      "id": "dashboard_bookmark_banner",
+      "test_prompt": "/auto-admin-install-project\nContext: Simple tool installer with HTML dashboard output.",
+      "assertion": "HTML dashboard starts with a bookmark banner as the first visible element",
+      "pass_condition": "true if the generated HTML has a prominent bookmark banner as the first content element, mentioning Ctrl+D or Cmd+D"
+    },
+    {
+      "id": "dashboard_required_sections",
+      "test_prompt": "/auto-admin-install-project\nContext: A complete deployment project with multiple files.",
+      "assertion": "Dashboard includes all 8 required sections",
+      "pass_condition": "true if HTML contains: Bookmark Banner, Project Summary Card, Upgrade Summary, Phase Tracker, Execution Log, Benefits & Risks, File Manifest, Verification Checklist"
+    },
+    {
+      "id": "dashboard_design_system",
+      "test_prompt": "/auto-admin-install-project\nContext: Project with dashboard output.",
+      "assertion": "Dashboard uses the Trident scorecard design system colors",
+      "pass_condition": "true if HTML/CSS contains the specified colors: #080a10, #11131d, #181b27, #232638, #6c5ce7 and references Inter or JetBrains Mono fonts"
+    },
+    {
+      "id": "powershell_targeting",
+      "test_prompt": "/auto-admin-install-project\nContext: File management automation project.",
+      "assertion": "Deploy scripts target Windows/PowerShell (not bash/sh)",
+      "pass_condition": "true if generated deterministic scripts use PowerShell syntax (.ps1) with Windows paths, not bash/sh/zsh"
+    },
+    {
+      "id": "no_secrets_in_output",
+      "test_prompt": "/auto-admin-install-project\nContext: API integration project using OPENAI_API_KEY and DATABASE_URL secrets.",
+      "assertion": "No API keys, tokens, or passwords appear in scripts or dashboard",
+      "pass_condition": "true if generated output references environment variables or placeholders rather than actual secret values"
+    },
+    {
+      "id": "rollback_plan_present",
+      "test_prompt": "/auto-admin-install-project\nContext: Script that modifies system configuration files.",
+      "assertion": "Deploy script documents how to undo/rollback what it did",
+      "pass_condition": "true if output includes a rollback or undo section explaining how to reverse the changes"
+    },
+    {
+      "id": "date_prefix_outputs",
+      "test_prompt": "/auto-admin-install-project\nContext: Simple automation project.",
+      "assertion": "Output files use YYYY-MM-DD date prefix format",
+      "pass_condition": "true if generated filenames follow the pattern YYYY-MM-DD_[project-name]-dashboard.html or similar date-prefixed naming"
+    },
+    {
+      "id": "multi_phase_monitoring",
+      "test_prompt": "/auto-admin-install-project\nContext: Security audit project requiring 60 days of data collection before policy generation.",
+      "assertion": "Multi-phase projects include monitoring mechanisms for time-gated phases",
+      "pass_condition": "true if response defines a monitoring mechanism (scheduled task or check script) for phases blocked by time/data prerequisites, with gate criteria and alert triggers"
+    },
+    {
+      "id": "conversation_context_only",
+      "test_prompt": "/auto-admin-install-project\nContext: I have project files in C:\\Projects\\my-app but nothing was discussed here.",
+      "assertion": "The skill operates on conversation context only, does NOT scan filesystem",
+      "pass_condition": "true if the skill does NOT attempt to read or scan the referenced filesystem path and instead asks for the project context to be provided in conversation"
+    },
+    {
+      "id": "error_handling_in_scripts",
+      "test_prompt": "/auto-admin-install-project\nContext: PowerShell deployment script that downloads files and installs packages.",
+      "assertion": "Generated scripts include error handling with clear failure messages",
+      "pass_condition": "true if generated scripts contain try/catch blocks or error checks after major operations with descriptive failure messages"
+    },
+    {
+      "id": "verification_checks_present",
+      "test_prompt": "/auto-admin-install-project\nContext: Tool installation and configuration project.",
+      "assertion": "Output includes verification checks after major operations",
+      "pass_condition": "true if deploy script or dashboard includes post-install verification commands with expected outcomes"
+    },
+    {
+      "id": "improvement_register_format",
+      "test_prompt": "/auto-admin-install-project\nContext: Two PowerShell scripts for system monitoring.",
+      "assertion": "Step 2 outputs an improvement register with the specified columns",
+      "pass_condition": "true if output includes a table or structured list with: Item, Component, Impact, Effort, Recommended"
+    }
+  ]
+}
