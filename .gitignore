@@ -1,0 +1,87 @@
+# Trident Code — Git Ignore Rules
+
+# Data files (local, sensitive, large)
+/memory/**/*.log
+/memory/**/*.cache
+/memory/mirror-log.md
+/memory/audit-report.md
+/memory/*.backup
+/memory/.env
+
+# Configuration (secrets, credentials)
+.env
+.env.local
+.env.*.local
+/config/supabase-config.md
+/config/*.secret
+/config/**/*.credentials
+
+# User identity (sensitive, personal)
+/memory/user_identity.md
+/memory/team-registry.md
+/memory/setup_complete.md
+
+# Node/dependency files (if using)
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Python files (if using)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.sublime-workspace
+
+# Build artifacts
+dist/
+build/
+*.zip
+*.tar.gz
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+.#*
+\#*\#
+
+# OS-specific
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Trident-specific temporary files
+/memory/factory-staging/**/*.md
+/memory/scout-candidates/**/*.md
+/memory/patterns-draft/**/*.md
+
+# But DO track templates
+!/memory/factory-staging/.gitkeep
+!/memory/scout-candidates/.gitkeep
+!/memory/patterns-draft/.gitkeep
+
+# Large files
+*.iso
+*.dmg
+*.exe
+*.msi
+*.tar.gz
+
+# Exclude common sensitive patterns (if accidentally checked in)
+*secret*
+*password*
+*token*
+*key*.md
+*credential*
