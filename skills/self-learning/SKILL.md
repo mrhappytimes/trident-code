@@ -1,10 +1,19 @@
----
+﻿---
 name: self-learning
 description: "Trident Self-Learning System — captures session corrections, mistakes, and insights into learnings.md. Extended with Trident hooks: feeds Mirror, tags team learnings [TEAM], flags promotions for CLAUDE.md, and pushes to shared Supabase. Trigger at END of any meaningful work session, or when user says 'wrap up', 'what did we learn', 'session wrap', 'log learnings', 'capture corrections', 'capture insights', 'learned today', 'self-learning', 'session learnings', 'end of session', 'goodnight', 'done for today'. This is the foundation of the self-improving loop — use it every session."
 effort: medium
-version: "3.3"
-updated: "2026-04-14"
+version: "3.5"
+updated: "2026-05-05"
 changelog: |
+  v3.5 -- POINTER-FILE DETECTION (2026-05-05)
+  - Step 7c: detect active project via .claude/active-project JSON pointer file first,
+    then fallback to filesystem scan — eliminates path ambiguity on multi-project setups
+  - Filename slug added to session_summaries output (YYYY-MM-DD_HHMM_topic.md format)
+  v3.4 -- PROJECT MOUNT WRITE HOOK (V1 Memory Fix 2026-04-15)
+  - Added Step 7c: writes session summary to project mount
+  - Also updates system-state.md and decision-log.md when applicable
+  - Runs alongside Step 7b (Obsidian) -- no MCP dependency
+  - Fixes 2026-04-14 Cognee memory transfer failure
   v3.3 -- OBSIDIAN SYNC AMENDMENT (2026-04-14)
   - Step 3 entry template: added Source session + Primary artifact fields
   - Step 7b added: mandatory Obsidian MCP writes at session end
@@ -230,6 +239,68 @@ This step closes the write loop. Without it, learnings stay in learnings.md but 
 **Error handling:**
 - obsidian-vault MCP unavailable → skip Step 7b, add ⚠️ to session output: "Obsidian sync skipped — MCP unavailable. Manually update session-index.md."
 - Individual file write fails → log which file failed, continue with others. Never block full session end on one file.
+
+### Step 7c — Project Mount Session Summary ⚡ UPDATED v3.5 (pointer-file detection)
+
+**MANDATORY when an active project is detected. Writes direct file (no MCP needed).**
+
+**Purpose:** Guarantee a session summary lands in the project's 07_MEMORY at session end,
+independent of Obsidian MCP availability. This is the WRITE side of V1 cross-session memory.
+Runs in addition to Step 7b (Obsidian sync) — not instead of.
+
+**Execution:**
+
+1. **Detect active project (pointer file first, then fallback scan):**
+   - Check `[CWD]/.claude/active-project` — if valid JSON, parse `memory_path`, `project_name`, `project_root`.
+     Set `ACTIVE_MEMORY_PATH = memory_path`, `ACTIVE_PROJECT_PATH = project_root`.
+   - Fallback: scan `/sessions/*/mnt/*/` for folder containing `01_GOVERNANCE/project-state.md`.
+     Set `ACTIVE_PROJECT_PATH = match`, `ACTIVE_MEMORY_PATH = match/07_MEMORY`.
+   - If neither found: skip step 7c silently.
+2. **If found, write a session summary:**
+   - Path: `[ACTIVE_MEMORY_PATH]/session_summaries/YYYY-MM-DD_HHMM_topic.md`
+   - Filename: date + 24h time + short topic slug (e.g., `2026-04-15_1430_cognee-v1-planning.md`)
+   - Topic slug: 2-4 hyphenated words capturing what this session was about
+3. **Content template:**
+   ```markdown
+   # Session Summary — YYYY-MM-DD — [Topic]
+
+   **Session focus:** [1 line — what this session was for]
+
+   ## What changed / what was built
+   - [bulleted list — files created/edited, decisions locked, work shipped]
+
+   ## What Jack confirmed (or corrected)
+   - [bulleted list — explicit confirmations or corrections from this session that future
+     sessions need. Examples: "Python 3.12 already installed", "don't use OneDrive paths"]
+
+   ## Current state of the work
+   - [1-3 lines — where things stand right now]
+
+   ## Open items (priority order)
+   1. [next action]
+   2. [next action]
+
+   ## For next session boot
+   - [what the next Claude should know on day one]
+   ```
+
+4. **ALSO update `[ACTIVE_MEMORY_PATH]/system-state.md`:**
+   - If any env/install/network state changed this session, update the relevant table row
+   - If nothing changed, update only the `Last updated:` line at top
+
+5. **ALSO append to `[ACTIVE_PROJECT_PATH]/01_GOVERNANCE/decision-log.md` (if it exists):**
+   - If any structural/locked decision was made this session, add an entry with
+     DATE | DECISION | RATIONALE | OUTCOME format
+
+**Error handling:**
+- Write fails (permission / path error) → log error to output, DO NOT block wrap-up.
+  The learnings.md write is the backup capture.
+- Active project not found → skip step 7c silently. Obsidian step 7b still runs.
+- system-state.md or decision-log.md missing → skip those sub-steps, still write the
+  session summary.
+
+**Reminder:** This step is the WRITE side of V1 memory. Skipping it means the next session
+boots blind to this session's work. Always run unless project is not mounted.
 
 ## Error Handling
 
