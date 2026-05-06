@@ -199,6 +199,23 @@ Mechanisms 3, 4, 5, 7, 8 wire into the CORTEX 2.0 roadmap directly — they're n
 
 ---
 
+## Graceful degradation matrix (mandatory — do not block operator on infrastructure)
+
+When a dependency is unreachable, do NOT fail the flag. Degrade explicitly per this table and write the degraded state into the dossier so future sessions know what was skipped.
+
+| Failure | Skill behavior | Where logged |
+|---|---|---|
+| Cognee MCP unreachable / timeout | Mark `KB cross-check` row as `unreachable (timeout: <ms>)`; continue with other KB sources | Dossier KB cross-check table |
+| Mem0 MCP unreachable | Mark `Mem0` row as `unreachable`; skip Mem0 fact write in Step 5 | Dossier KB cross-check table + audit trail |
+| Obsidian MCP unavailable | Mark `Obsidian` row as `mcp-deferred`; skip wiki promote | Dossier KB cross-check table |
+| `MEM0_SESSION_TENANT` env var unset | Skip Mem0 fact write; note in audit trail | Audit trail "Mem0 fact: skipped (no tenant env)" |
+| `SLACK_WEBHOOK_URL` env var unset | Skip Slack post; note in audit trail | Audit trail "Slack: webhook-unset" |
+| `.planning/CYCLE-LOG.md` missing | Skip CYCLE-LOG append; create note in `~/.cache/flag-degradation.log` | Local cache log |
+| `file_flag.py` script errors | Catch + log to `~/.cache/flag-degradation.log`; write inline degradation marker in dossier; continue to operator reply | Local cache log + dossier |
+| Git commit fails | Log to `~/.cache/flag-degradation.log`; surface in operator reply with "uncommitted — needs operator review" | Local cache + reply |
+
+**Hard rule:** the operator-facing reply (Step 7) ALWAYS ships, even if every dependency failed. A degraded flag is still infinitely more useful than a silent failure or a stack trace.
+
 ## Anti-patterns (do not do)
 
 - ❌ "Got it, I'll be more careful next time" with no artifact
