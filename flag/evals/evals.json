@@ -1,0 +1,124 @@
+{
+  "skill": "flag",
+  "version": "1.0",
+  "description": "Binary assertions to grade /flag skill behavior — used by auto-research and skill-creator quality loop.",
+  "test_cases": [
+    {
+      "id": "trigger-slash",
+      "input": "/flag",
+      "expected_behavior": "Activates flag handler; identifies previous assistant turn; runs the 7-step flow.",
+      "assertions": [
+        "Skill activates without operator providing additional context",
+        "Skill quotes or references the previous assistant turn",
+        "Skill runs at least one of: Cognee search, Mem0 search, Obsidian search, Grep .planning/",
+        "Skill writes a dossier to .claude/flags/<timestamp>-<slug>.md",
+        "Skill responds with concise operator-tone reply (no flowery apologies)"
+      ]
+    },
+    {
+      "id": "trigger-emoji-only",
+      "input": "🚩",
+      "expected_behavior": "Single emoji is recognized as flag trigger; no confirmation prompt.",
+      "assertions": [
+        "Skill activates without asking 'what do you mean?'",
+        "Skill identifies and quotes the previous assistant turn"
+      ]
+    },
+    {
+      "id": "trigger-natural-language",
+      "input": "flag this",
+      "expected_behavior": "Natural-language trigger recognized.",
+      "assertions": [
+        "Skill activates",
+        "Skill follows the 7-step flow"
+      ]
+    },
+    {
+      "id": "kb-cross-check-mandatory",
+      "input": "/flag (after a response that should have been in Cognee)",
+      "expected_behavior": "Skill MUST query knowledge base before writing dossier.",
+      "assertions": [
+        "Skill calls at least one KB search tool (mcp__cortex__search_research, mcp__cortex__get_memories, or mcp__obsidian-vault__search_notes)",
+        "Skill records the verdict: had-it / didnt-have-it / partial",
+        "If KB had-it: skill marks severity P0 and category R (retrieval miss)",
+        "If KB didnt-have-it: skill marks category K (knowledge gap)"
+      ]
+    },
+    {
+      "id": "dossier-completeness",
+      "input": "/flag",
+      "expected_behavior": "Dossier file is committed with all required sections.",
+      "assertions": [
+        "Dossier file exists at .claude/flags/<timestamp>-<slug>.md",
+        "Dossier contains: operator-ask · flagged-response · failure-category · KB-cross-check · root-cause · documented-lesson · SOP-delta-proposal · eval-set-entry",
+        "Dossier YAML frontmatter has: flag_id, category_primary, kb_had_answer, severity, loop_artifacts"
+      ]
+    },
+    {
+      "id": "memory-update",
+      "input": "/flag",
+      "expected_behavior": "Memory is updated in at least one durable location.",
+      "assertions": [
+        "Skill writes to ~/.claude/projects/<encoded>/memory/feedback_<topic>.md OR Cognee governance_memory OR Mem0 fact",
+        "Memory entry references the dossier file by path"
+      ]
+    },
+    {
+      "id": "loop-closure-eval-set",
+      "input": "/flag",
+      "expected_behavior": "Eval set entry is appended for regression protection.",
+      "assertions": [
+        "Skill appends a JSONL entry to .planning/cortex-evals/retrieval-set.jsonl",
+        "Entry contains: prompt, expected_chunks, rationale, added_by=flag, flag_id"
+      ]
+    },
+    {
+      "id": "loop-closure-sop-proposal",
+      "input": "/flag",
+      "expected_behavior": "SOP-delta proposal is appended to the proposals file.",
+      "assertions": [
+        "Skill appends entry to .planning/SOP-PROPOSALS.md",
+        "Entry contains: timestamp, topic_slug, proposal text, dossier link"
+      ]
+    },
+    {
+      "id": "loop-closure-metrics",
+      "input": "/flag (3rd flag for same topic_slug in 7 days)",
+      "expected_behavior": "Auto-spawns advisor panel when threshold met.",
+      "assertions": [
+        ".planning/FLAG-METRICS.json is incremented with new flag entry",
+        "Skill detects recent_count >= 3 within 7 days for the topic_slug",
+        "Skill triggers advisor panel (logs panel_trigger=true and posts to Slack)"
+      ]
+    },
+    {
+      "id": "graceful-degradation",
+      "input": "/flag (with Cognee MCP unreachable)",
+      "expected_behavior": "Skill never blocks operator on infrastructure.",
+      "assertions": [
+        "Skill logs the failed KB call but continues",
+        "Skill produces dossier with KB cross-check marked 'unreachable' instead of failing",
+        "Skill exits with operator-facing reply, not a stack trace"
+      ]
+    },
+    {
+      "id": "no-defensive-language",
+      "input": "/flag",
+      "expected_behavior": "Skill response uses operator-tone, no apologies.",
+      "assertions": [
+        "Skill response does NOT contain 'I apologize', 'I'm sorry', 'my mistake', 'sorry for the confusion'",
+        "Skill response IS direct, action-oriented, captures fix and ships",
+        "Skill response includes: what was flagged, KB verdict, captured artifacts, what changes next time"
+      ]
+    },
+    {
+      "id": "ambiguous-trigger-confirmation",
+      "input": "I think we should flag this for review later",
+      "expected_behavior": "Ambiguous use of 'flag' word triggers 1-line confirmation, not full activation.",
+      "assertions": [
+        "Skill confirms in 1 line: 'Flagging the previous response as a system failure — confirm? [y/n]'",
+        "Skill does NOT proceed to full 7-step flow without confirmation"
+      ]
+    }
+  ]
+}
