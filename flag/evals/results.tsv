@@ -1,0 +1,4 @@
+iteration	timestamp	commit_sha	change_summary	pass_count	total	pass_rate	delta	decision
+0_baseline	2026-05-06T23:55Z	81fc7a0	skill v1.0 initial	31	33	0.939	—	keep
+1	2026-05-06T23:58Z	8f7026f	require dossier path back-link in memory entries	32	33	0.970	+0.030	keep
+2	2026-05-07T00:01Z	(pending)	explicit graceful-degradation matrix	33	33	1.000	+0.030	keep_perfect
