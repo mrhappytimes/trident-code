@@ -1,10 +1,11 @@
 # System Invariants — POM AI Operating Floor
 _The list of things that MUST be true. If any is false for >24h, the system has failed and a retrospective is required._
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Created:** 2026-05-06  
+**Updated:** 2026-05-06 (heartbeat moved to ouroboros-dashboard where Tailscale + SSH secrets exist)  
 **Owner:** Jack (verified weekly via `/system-audit-weekly`)  
-**External heartbeat:** GitHub Actions `.github/workflows/system-heartbeat.yml` runs daily 6am UTC and updates `system-pulse.md`.
+**External heartbeat:** Lives in [`ai-ops-user/ouroboros-dashboard`](https://github.com/ai-ops-user/ouroboros-dashboard/actions/workflows/system-heartbeat.yml) (private) — `.github/workflows/system-heartbeat.yml`. Daily 6am UTC. Writes `system-pulse.md` back to that repo. The Claude SessionStart hook (`pulse-check.js`) fetches via `gh api` to handle the private repo. This `system-invariants.md` (in public `trident-code`) is the canonical specification and authority — the workflow embeds the same checks inline.
 
 ---
 
