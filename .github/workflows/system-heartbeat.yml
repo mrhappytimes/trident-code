@@ -1,0 +1,159 @@
+name: System Heartbeat
+
+# External accountability layer for POM AI.
+# Runs OFF Jack's laptop, OFF Hetzner — in GitHub Actions.
+# Verifies every invariant in system-invariants.md daily.
+# Opens an issue + writes system-pulse.md if any invariant fails.
+
+on:
+  schedule:
+    # Daily 6am UTC = 1am ET / 10pm PT previous day
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}  # allow manual trigger
+  push:
+    paths:
+      - 'system-invariants.md'
+      - 'system-metrics.md'
+      - '.github/workflows/system-heartbeat.yml'
+
+permissions:
+  contents: write       # commit pulse + history.csv updates
+  issues: write         # open alarm issues
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH (Tailscale + key)
+        env:
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+          OUROBOROS_SSH_KEY: ${{ secrets.OUROBOROS_SSH_KEY }}
+        run: |
+          # Tailscale connect (so we can reach Omega 100.92.44.56)
+          curl -fsSL https://tailscale.com/install.sh | sh
+          sudo tailscale up --authkey="$TAILSCALE_AUTHKEY" --hostname="heartbeat-runner-$(date +%Y%m%d)" --ephemeral
+          # SSH key
+          mkdir -p ~/.ssh
+          echo "$OUROBOROS_SSH_KEY" > ~/.ssh/ouroboros_hetzner
+          chmod 600 ~/.ssh/ouroboros_hetzner
+          ssh-keyscan -H 100.92.44.56 49.13.199.174 >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Run invariant checks
+        id: checks
+        run: |
+          set +e  # collect all results, don't bail on first failure
+
+          mkdir -p .heartbeat
+          PULSE_FILE=".heartbeat/pulse.tmp.md"
+          FAILED=0
+          NOW=$(date -u +"%Y-%m-%d %H:%M UTC")
+
+          {
+            echo "# System Pulse"
+            echo "_Generated: $NOW · Runner: GitHub Actions ubuntu-latest_"
+            echo ""
+            echo "| ID | Assertion | Status | Detail |"
+            echo "|----|-----------|--------|--------|"
+          } > "$PULSE_FILE"
+
+          check() {
+            local id="$1" desc="$2" cmd="$3"
+            local result detail
+            result=$(eval "$cmd" 2>&1)
+            local rc=$?
+            if [ $rc -eq 0 ]; then
+              echo "| $id | $desc | ✅ green | — |" >> "$PULSE_FILE"
+            else
+              echo "| $id | $desc | 🔴 RED | \`$(echo "$result" | head -1 | tr '|' '!' | cut -c1-80)\` |" >> "$PULSE_FILE"
+              FAILED=$((FAILED+1))
+              echo "FAIL_$id=$desc" >> $GITHUB_OUTPUT
+            fi
+          }
+
+          # SSH wrapper for Omega + Alpha
+          OMEGA="ssh -i ~/.ssh/ouroboros_hetzner -o ConnectTimeout=8 -o StrictHostKeyChecking=no root@100.92.44.56"
+          ALPHA="ssh -i ~/.ssh/ouroboros_hetzner -o ConnectTimeout=8 -o StrictHostKeyChecking=no root@49.13.199.174"
+
+          check "INV-001" "BRAIN.md fresh (<7d)" \
+            "$OMEGA 'find /workspace/distiller-output/BRAIN.md -mtime -7 -print | grep -q .'"
+
+          check "INV-002" "Distiller crontab well-formed (≥10 lines)" \
+            "$OMEGA 'wc -l < /var/spool/cron/crontabs/root | awk \"{exit (\\\$1<10)}\"'"
+
+          check "INV-003" "Runner systemd active" \
+            "$ALPHA 'systemctl is-active ouroboros-runner | grep -q active'"
+
+          check "INV-004" "Circuit breaker not stale-tripped" \
+            "$ALPHA '[ ! -f /workspace/runtime/circuit-breaker.flag ] || find /workspace/runtime/circuit-breaker.flag -mmin -60 -print | grep -q .'"
+
+          check "INV-005" "Cortex MCP TCP responds" \
+            "nc -zw3 100.92.44.56 8765"
+
+          check "INV-006" "MARATHON.md has at least 1 active build entry" \
+            "grep -q '### \[MARATHON-' MARATHON.md"
+
+          check "INV-007" "Hooks suite all green" \
+            "test -f hooks/_verify-hooks.js && node hooks/_verify-hooks.js >/dev/null 2>&1"
+
+          check "INV-010" "Tailscale peers (Omega+Alpha reachable)" \
+            "tailscale ping --c 1 --timeout 3s 100.92.44.56 >/dev/null 2>&1 && tailscale ping --c 1 --timeout 3s 49.13.199.174 >/dev/null 2>&1"
+
+          # Append summary
+          {
+            echo ""
+            echo "## Summary"
+            echo "- Failures: $FAILED / 8 invariants checked"
+            echo "- Next run: $(date -u -d '+1 day' +'%Y-%m-%d 06:00 UTC')"
+            echo ""
+          } >> "$PULSE_FILE"
+
+          # Promote to system-pulse.md
+          mv "$PULSE_FILE" system-pulse.md
+          echo "FAILED=$FAILED" >> $GITHUB_OUTPUT
+          echo "TIMESTAMP=$NOW" >> $GITHUB_OUTPUT
+
+          # Append to history.csv
+          if [ ! -f system-pulse-history.csv ]; then
+            echo "timestamp,failed_count,total_checks" > system-pulse-history.csv
+          fi
+          echo "$NOW,$FAILED,8" >> system-pulse-history.csv
+
+      - name: Commit pulse + history
+        if: always()
+        run: |
+          git config user.name "system-heartbeat[bot]"
+          git config user.email "heartbeat@noreply.local"
+          git add system-pulse.md system-pulse-history.csv 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "heartbeat: $(date -u +%Y-%m-%d) — ${{ steps.checks.outputs.FAILED }} failures"
+          git push origin main || echo "push-skipped"
+
+      - name: Open issue if any invariant red
+        if: steps.checks.outputs.FAILED > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const failed = ${{ steps.checks.outputs.FAILED }};
+            const ts = `${{ steps.checks.outputs.TIMESTAMP }}`;
+            const fs = require('fs');
+            const pulse = fs.readFileSync('system-pulse.md', 'utf8');
+            const title = `🔴 System Heartbeat: ${failed} invariant${failed>1?'s':''} red — ${ts}`;
+            const body = `${pulse}\n\n---\n\nThis issue was opened automatically by \`.github/workflows/system-heartbeat.yml\`. Resolve the failed invariants before this issue is closed. See \`system-invariants.md\` for verify commands and remediation owners.`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['heartbeat-alarm', 'priority-high']
+            });
+
+      - name: Optional Slack alarm (if SLACK_WEBHOOK_URL secret set)
+        if: steps.checks.outputs.FAILED > 0 && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"🔴 POM AI Heartbeat: ${{ steps.checks.outputs.FAILED }} invariants red — ${{ steps.checks.outputs.TIMESTAMP }}. See https://github.com/${{ github.repository }}/issues for details.\"}" \
+            "$SLACK_WEBHOOK_URL"

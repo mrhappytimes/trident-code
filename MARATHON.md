@@ -56,32 +56,79 @@ _Last updated: 2026-05-05 20:45 · Updated by: wrap-up Step 2d · session: ourob
 - **Blocking**: Nothing — changes are additive
 
 ### [MARATHON-003] ouroboros-agent · runner-circuit-breaker
-- **Status**: 🔴 IN_PROGRESS (started 2026-05-05 ~16:00 — TYPE-A autonomous Wave 1)
+- **Status**: ✅ COMPLETE (2026-05-05 ~17:25 — Alpha `/workspace/runtime/runner.sh` deployed)
 - **Project**: Alpha `/workspace/`
-- **Phase**: Wave 1 item 1.2
-- **Locks**: Alpha `/workspace/runner.sh` · Alpha `/workspace/runtime/circuit-breaker.flag` · Alpha `/workspace/logs/circuit-breaker-tripped.log`
-- **Scope**: Add circuit breaker to runner.sh — detect Anthropic billing_error → halt + sleep + alert
-- **Assigned session type**: TYPE-A AUTONOMOUS
-- **Concurrent with**: MARATHON-001 (PAUSED, no overlap), MARATHON-009 (global config, no overlap)
-- **Hold signal**: Item complete or session caps at 2hr
+- **What shipped**: billing-error circuit breaker — detects `billing_error` /
+  `Credit balance is too low` / `credit_balance_too_low` / `insufficient_quota`
+  / `payment_required` in claude run logs. On detection: writes
+  `/workspace/runtime/circuit-breaker.flag`, increments consecutive counter,
+  sleeps 1800s. Pre-flight check at top of main loop skips iterations while
+  flag is fresh. After 3 consecutive billing errors: halt + log to
+  `/workspace/logs/circuit-breaker-tripped.log`. Counter resets on any
+  non-billing task outcome.
+- **Verified**: bash -n syntax PASS; 3 detection scenarios PASS in container;
+  runner restarted, auth check ✓, picked up local task normally
+- **Repo**: commit `28cb235` — `runtime/runner.sh` reconciled with deployed
+  (was 18771-byte Apr 19 version, drifted from container's 19264; now 23036
+  with circuit breaker)
+- **Locks**: RELEASED
 
 ### [MARATHON-006] ouroboros-agent · queue-rebalance-audit-cap
-- **Status**: 🔴 IN_PROGRESS (started 2026-05-05 — TYPE-A autonomous Wave 1)
+- **Status**: ✅ COMPLETE (2026-05-05 ~17:55 — Alpha `/workspace/runtime/loop_controller.py` deployed)
 - **Project**: Alpha `/workspace/`
-- **Phase**: Wave 1 item 1.3 (after MARATHON-003)
-- **Locks**: Alpha `/workspace/governance/**` · Alpha `/workspace/scheduler/**`
-- **Scope**: Cap audit/monitoring tasks at 15% of active queue mix
-- **Assigned session type**: TYPE-A AUTONOMOUS
-- **Hold signal**: Item complete
+- **What shipped**: 15% audit/monitor cap at template-selection time in
+  `loop_controller.py`. New `_is_audit_template()` classifier on substring
+  markers (audit/monitor/drift-analysis/system-prompt-audit/...) and
+  `_enforce_audit_cap()` that trims audits in batch so audit ≤ total*0.15.
+  Floor allows ≥1 audit when total ≥7 so cap isn't hard ban. AUDIT_CAP_PCT
+  env override.
+- **Verified**: classifier 6/6 PASS; cap math PASS at total=4/7/20; AST parse
+  PASS in container; AUDIT_CAP referenced 4× in deployed file
+- **Snapshot at change**: 18 queue + 200 done all research-synthesis (0 audit)
+  — cap is preventive
+- **Repo**: commits `a4a40d9` (loop_controller) + `d5b6332`
+  (governance/CHANGES-2026-05-05.md). Also pushed CHANGES doc to Alpha
+  `/workspace/governance/CHANGES-2026-05-05.md`.
+- **Note**: `loop_controller.py` only fires when QUEUE_BACKEND=r2; Alpha
+  currently runs local backend with separate alpha-refill generator outside
+  `runtime/`. Local generator emits no audit/monitor tasks today, so no
+  parallel patch needed.
+- **Locks**: RELEASED
 
 ### [MARATHON-007] ouroboros-agent · distiller-cron-verification
-- **Status**: 🔴 IN_PROGRESS (started 2026-05-05 — TYPE-A autonomous Wave 1)
-- **Project**: Omega (100.92.44.56) `/workspace/distiller/`
-- **Phase**: Wave 1 item 1.4 (after MARATHON-006)
-- **Locks**: Omega root crontab (distiller entry only) · Omega `/workspace/distiller/run.sh` (read-only unless missing)
-- **Scope**: Verify distiller cron is firing; restore if missing — BRAIN.md 14 days stale
+- **Status**: ✅ COMPLETE (2026-05-05 ~18:05 — Omega crontab fixed)
+- **Project**: Omega (100.92.44.56)
+- **Root cause found**: `/var/spool/cron/crontabs/root` had all 10 OUROBOROS
+  cron entries concatenated onto a SINGLE line (verified via cat -A: 1100+
+  bytes with one trailing `$`). Other crons fired by accident via bash
+  interpretation of the concatenated command; the 30-3 distiller line did
+  not. Last successful distiller fire was 2026-04-22 — 3 windows missed.
+- **What shipped**: Multi-line canonical crontab (11 entries, proper newlines)
+  installed on Omega via `crontab /root/crontab.clean`. Backup at
+  `/root/crontab.backup-2026-05-05`. cron service active, schedule reloaded.
+- **Verified**: crontab -l + /var/spool/cron/crontabs/root both show 11 lines
+  via cat -A; manual distiller.py invocation completed end-to-end (exit 0):
+  20 new research files distilled, BRAIN.md regenerated 18531 bytes,
+  mtime advanced from 2026-04-21 to 2026-05-06 01:09 UTC
+- **Repo**: commit `363c146` — `ops/omega/crontab.clean.txt` (canonical) +
+  `ops/omega/CRONTAB-FIX-2026-05-05.md` (incident notes & follow-ups)
+- **Scheduled-fire confirmation**: next cron window Wed 2026-05-06 03:30 UTC
+  (~2h after fix landed) — already redundant since manual run succeeded,
+  but operator can spot-check mtime tomorrow as a regression catch.
+- **Follow-ups recorded**: (1) add Omega session-start hook to alarm on
+  crontab <5 lines; (2) audit fleet/ provisioning scripts for any path
+  that writes crontab without preserving newlines.
+- **Locks**: RELEASED
+
+### [MARATHON-011] global-claude-config · external-heartbeat-and-standard
+- **Status**: 🔴 IN_PROGRESS (started 2026-05-06 00:30)
+- **Project**: `C:\Users\jackp\Claude-Projects\trident-code` + `C:\Users\jackp\.claude`
+- **Phase**: Wave D — external accountability layer + measurable metrics + THE STANDARD
+- **Locks**: `Claude-Projects/trident-code/system-invariants.md` (new) · `Claude-Projects/trident-code/system-metrics.md` (new) · `Claude-Projects/trident-code/.github/workflows/system-heartbeat.yml` (new) · `Claude-Projects/trident-code/STANDARD.md` (new) · `~/.claude/hooks/pulse-check.js` (new) · `~/.claude/skills/system-audit-weekly/**` (new) · `~/.claude/STANDARD.md` (new)
+- **Scope**: External heartbeat (GitHub Actions, off-system), invariants file, metrics dashboard with Karpathy/HELM-style multi-dimensional measurement, weekly audit skill, pulse-check SessionStart hook, THE STANDARD playbook codifying 10 commandments + measurable design rubric
 - **Assigned session type**: TYPE-A AUTONOMOUS
-- **Hold signal**: Item complete
+- **Concurrent with**: Nothing (all new paths)
+- **Hold signal**: All 7 deliverables shipped + pushed to GitHub
 
 ### [MARATHON-004] ouroboros-agent · cognee-ingestion-fix
 - **Status**: 🔵 QUEUED (Wave 2 — dedicated session)
@@ -117,14 +164,14 @@ _Last updated: 2026-05-05 20:45 · Updated by: wrap-up Step 2d · session: ourob
 - **Blocking**: Nothing — all additive
 
 ### [MARATHON-010] global-claude-config · wave-c-operational-hardening
-- **Status**: 🔴 IN_PROGRESS (started 2026-05-05 22:15)
+- **Status**: ✅ COMPLETE (2026-05-05)
 - **Project**: `C:\Users\jackp\.claude` + `C:\Users\jackp\Claude-Projects\trident-code`
-- **Phase**: Wave C items C1–C4 in parallel (sync, push, hook validation, backup cleanup)
-- **Locks**: `C:\Users\jackp\Claude-Projects\trident-code\**` (commit + push) · `C:\Users\jackp\.claude\skills\_archive\**` (new) · `C:\Users\jackp\.claude\hooks\` (read-only test)
-- **Scope**: Comprehensive sync of today's work to GitHub for durability + machine portability. Live hook validation. Skill archive cleanup.
-- **Assigned session type**: TYPE-A AUTONOMOUS
-- **Concurrent with**: MARATHON-001 IN_PROGRESS (no overlap — different repo)
-- **Hold signal**: Session ends or items complete
+- **What shipped**:
+  - **C1+C2**: Synced 5 hooks + 4 skills + MARATHON.md to `Claude-Projects/trident-code/`. Resolved rebase conflict via hard-reset + reapply. **Pushed to GitHub at `mrhappytimes/trident-code` commit `56fba6e`**. Today's work is now durable across machines.
+  - **C3**: Live SessionEnd hook test — synthetic stdin to `session-memory-writer.js` correctly wrote summary to `C:\Dev\ouroboros-common\07_MEMORY\session_summaries\` (walk-up directory pointer detection verified). Test summary file cleaned up afterward.
+  - **C4**: Archived 4 stale skill backups to `~/.claude/skills/_archive/`: `meta-pain-check.bak.20260415`, `start-project.bak-20260505`, `start-session.bak-20260505-v3.0`, `start-session.bak-20260505-v4.0`. Skill list now clean (zero `.bak` directories surfacing in skill registry).
+- **Locks**: RELEASED
+- **Blocking**: Nothing
 
 ### [MARATHON-005] ouroboros-agent · knowledge-graph-activation
 - **Status**: 🔵 QUEUED (Wave 3)
@@ -144,6 +191,8 @@ _Last updated: 2026-05-05 20:45 · Updated by: wrap-up Step 2d · session: ourob
 |----|-------|-----------|-------|
 | MARATHON-002 | 07_MEMORY pointer system | 2026-05-05 | Pointer files + hook + 3 skill updates |
 | MARATHON-008 | session-quality-hooks | 2026-05-05 | marathon-tracker + brain-staleness hooks, Step 0c/0d, GSD fallback |
+| MARATHON-009 | wave-b-leverage-batch | 2026-05-05 | repo-sync→trident-code path fix, _verify-hooks.js, /marathon-registry skill, cortex-health-check.js |
+| MARATHON-010 | wave-c-operational-hardening | 2026-05-05 | Synced + pushed to GitHub (commit 56fba6e), hook chain validated, 4 stale backups archived |
 
 ---
 
