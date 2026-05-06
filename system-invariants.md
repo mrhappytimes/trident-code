@@ -25,7 +25,8 @@ Each invariant has 6 fields:
 
 ### INVARIANT-001 — BRAIN.md is fresh
 - **Assertion:** Distilled BRAIN.md updates within 7 days of last cron window (Wed/Sun 3:30am UTC)
-- **Verify:** `ssh root@100.92.44.56 "find /workspace/distiller-output/BRAIN.md -mtime -7 -print | grep -q ."`
+- **Verify:** `ssh root@100.92.44.56 "find /workspace/GOVERNANCE/OUROBOROS-BRAIN.md -mtime -7 -print | grep -q ."`
+- **Path note:** Canonical path verified 2026-05-06 — earlier draft incorrectly listed `/workspace/distiller-output/BRAIN.md` which does not exist. The first heartbeat run caught this mismatch.
 - **Threshold:** mtime > 7 days = red; > 14 days = critical
 - **Alarm channel:** GitHub issue + brain-staleness-check.js at SessionStart
 - **Owner:** Omega distiller cron + autoremediation (re-run on detection)
