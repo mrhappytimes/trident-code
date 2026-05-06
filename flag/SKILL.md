@@ -125,6 +125,8 @@ In priority order:
 3. **Mem0 fact** — if `MEM0_SESSION_TENANT` is set, write a fact via `make_user_id` so it lands in the operator's namespace.
 4. **Obsidian wiki** — if the lesson is durable doctrine (not project-specific), promote to `wiki/concepts/` via the obsidian-vault MCP.
 
+**Every memory entry MUST reference the dossier file by path** (e.g., `See .claude/flags/<filename>` at the bottom of the entry). Without this back-link, the memory entry decays into context-free noise and future Claude sessions can't trace the lesson back to the original failure for verification.
+
 ### Step 6 — Close the CORTEX 2.0 learn loop
 
 This step ties flag into the larger super-brain roadmap:
